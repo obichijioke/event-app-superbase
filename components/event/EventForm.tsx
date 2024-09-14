@@ -186,12 +186,12 @@ export default function EventForm() {
               extra information such as schedules, itinerary or any special
               instructions required to attend your event.
             </p>
-            <div className="border rounded-md">
+            <div className="border rounded-lg h-48 relative">
               
               <ReactQuill
                 id="event-description"
                 placeholder="Start typing here..."
-                className="border-none focus:ring-0 rounded-lg h-48"
+                className="border-none focus:ring-0 rounded-lg h-full"
                 value={eventDescription}
                 onChange={(e) => setEventDescription(e)}
               />
