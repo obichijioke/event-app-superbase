@@ -29,7 +29,7 @@ export default function LocationComponent() {
   };
 
   return (
-    <Card className="w-full max-w-3xl mx-auto">
+    <Card className="w-full max-w-5xl mx-auto">
       <CardHeader>
         <CardTitle>Where is your event taking place?*</CardTitle>
         <p className="text-sm text-gray-500">

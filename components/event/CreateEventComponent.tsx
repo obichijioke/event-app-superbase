@@ -12,12 +12,9 @@ const CreateEventComponent = () => {
     { label: "Location", isActive: step === 2, isCompleted: step > 2 },
     { label: "Ticket", isActive: step === 3, isCompleted: step > 3 },
   ];
-  
-
-  
 
   return (
-    <div>
+    <div className="w-full">
       <div className="flex justify-between items-center mb-4">
         <StepComponent steps={steps} title="Create Event" />
       </div>
@@ -50,7 +47,7 @@ export function StepComponent({
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
+    <div className="w-full">
       <h1 className="text-2xl font-bold text-center mb-8">{title}</h1>
       <div className="flex justify-between items-center">
         {steps.map((step, index) => (
