@@ -14,14 +14,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Calendar,
   Clock,
-  Bold,
-  Italic,
-  Link,
-  List,
   Image as ImageIcon,
 } from "lucide-react";
 import { getCategories } from "@/app/actions";
