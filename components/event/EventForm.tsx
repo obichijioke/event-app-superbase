@@ -1,9 +1,10 @@
 "use client";
+import { useState, useEffect } from "react";
 import { createEventAction } from "@/app/actions";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Category } from "@/types/eventTypes";
 import {
   Select,
   SelectContent,
@@ -22,6 +23,7 @@ import {
   List,
   Image as ImageIcon,
 } from "lucide-react";
+import { getCategories } from "@/app/actions";
 
 export default function EventForm() {
   const [eventName, setEventName] = useState("");
@@ -30,6 +32,25 @@ export default function EventForm() {
   const [eventTime, setEventTime] = useState("");
   const [eventDuration, setEventDuration] = useState("1h");
   const [eventDescription, setEventDescription] = useState("");
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const categories = await getCategories();
+      setCategories(categories);
+      setLoading(false);
+    };
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    console.log(categories);
+  }, [categories]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div>
@@ -74,10 +95,12 @@ export default function EventForm() {
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="conference">Conference</SelectItem>
-                <SelectItem value="seminar">Seminar</SelectItem>
-                <SelectItem value="workshop">Workshop</SelectItem>
-                <SelectItem value="party">Party</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id.toString()}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+                
               </SelectContent>
             </Select>
           </div>

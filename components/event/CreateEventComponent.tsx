@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import EventForm from "./EventForm";
 import LocationComponent from "./LocationForm";
 import CreateTicket from "./CreateTicket";
@@ -12,6 +12,10 @@ const CreateEventComponent = () => {
     { label: "Location", isActive: step === 2, isCompleted: step > 2 },
     { label: "Ticket", isActive: step === 3, isCompleted: step > 3 },
   ];
+  
+
+  
+
   return (
     <div>
       <div className="flex justify-between items-center mb-4">

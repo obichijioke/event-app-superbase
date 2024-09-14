@@ -35,6 +35,16 @@ export const signUpAction = async (formData: FormData) => {
   }
 };
 
+export const getCategories = async () => {
+  const supabase = createClient();
+  const { data, error } = await supabase.from("category").select("*");
+  if (error) {
+    console.error(error.code + " " + error.message);
+    return encodedRedirect("error", "/sign-up", error.message);
+  }
+  return data;
+};
+
 export const createEventAction = async (formData: FormData) => {
   const name = formData.get("name") as string;
   const supabase = createClient();
