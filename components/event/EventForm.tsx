@@ -25,6 +25,8 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { getCategories } from "@/app/actions";
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 export default function EventForm() {
   const [eventName, setEventName] = useState("");
@@ -185,33 +187,13 @@ export default function EventForm() {
               instructions required to attend your event.
             </p>
             <div className="border rounded-md">
-              <div className="flex items-center gap-1 p-2 border-b">
-                <select className="text-sm border-none bg-transparent">
-                  <option>Paragraph</option>
-                </select>
-                <Button variant="ghost" size="sm">
-                  <Bold className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="sm">
-                  <Italic className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="sm">
-                  <Link className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="sm">
-                  <List className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="sm">
-                  <ImageIcon className="h-4 w-4" />
-                </Button>
-              </div>
-              <Textarea
+              
+              <ReactQuill
                 id="event-description"
                 placeholder="Start typing here..."
-                className="border-none focus:ring-0"
-                rows={5}
+                className="border-none focus:ring-0 rounded-lg h-48"
                 value={eventDescription}
-                onChange={(e) => setEventDescription(e.target.value)}
+                onChange={(e) => setEventDescription(e)}
               />
             </div>
           </div>
