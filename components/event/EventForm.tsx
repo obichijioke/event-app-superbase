@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Category } from "@/types/eventTypes";
+import Loader from "@/components/ui/Loader";
 import {
   Select,
   SelectContent,
@@ -49,7 +50,7 @@ export default function EventForm() {
   }, [categories]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className="h-screen flex justify-center items-center"><Loader /></div>;
   }
 
   return (
