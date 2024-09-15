@@ -57,7 +57,11 @@ const Editor = dynamic(
   { ssr: false }
 );
 
-export default function EventForm() {
+export default function EventForm({
+  completed,
+}: {
+  completed: (result: any) => void;
+}) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [editorState, setEditorState] = useState(EditorState.createEmpty());
@@ -113,19 +117,21 @@ export default function EventForm() {
         formData.delete("eventName");
         formData.set("description", formData.get("eventDescription") as string);
         formData.delete("eventDescription");
-        formData.set("categoryId", formData.get("category") as string);
+        formData.set("category", formData.get("category") as string);
         formData.delete("category");
 
-        // const result = await createEventAction(formData);
-        // if (result.includes("success")) {
-        //   // Handle successful submission
-        //   console.log("Event created successfully");
-        //   // You might want to redirect the user or show a success message
-        // } else {
-        //   // Handle error
-        //   console.error("Error creating event:", result);
-        //   // You might want to show an error message to the user
-        // }
+        const result = await createEventAction(formData);
+        if (result) {
+          // Handle successful submission
+          console.log(result);
+          completed(result);
+          console.log("Event created successfully");
+          // You might want to redirect the user or show a success message
+        } else {
+          // Handle error
+          console.error("Error creating event:", result);
+          // You might want to show an error message to the user
+        }
       } catch (error) {
         console.error("Error creating event:", error);
         // Handle error, show message to user, etc.

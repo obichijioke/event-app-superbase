@@ -53,7 +53,7 @@ export const createEventAction = async (formData: FormData) => {
   const description = formData.get("description") as string;
   const eventDate = formData.get("eventDate") as string;
   const startTime = formData.get("eventTime") as string;
-  const categoryId = formData.get("category") as string;
+  const category = formData.get("category") as string;
   const images = formData.getAll("bannerImages") as File[];
   const duration = formData.get("eventDuration") as string;
 
@@ -78,22 +78,27 @@ export const createEventAction = async (formData: FormData) => {
   }
 
   // Insert event data with all fields
-  const { error } = await supabase.from("event").insert({
-    title,
-    description,
-    event_date: eventDate,
-    time: startTime,
-    category: categoryId,
-    image_urls: imageUrls,
-    duration: duration,
-  });
+  const { error, data } = await supabase
+    .from("event")
+    .insert([
+      {
+        title,
+        description,
+        event_date: eventDate,
+        time: startTime,
+        category,
+        image_urls: imageUrls,
+        duration: duration,
+      },
+    ])
+    .select();
 
   if (error) {
     console.error(error.code + " " + error.message);
-    return encodedRedirect("error", "/create-event", "Failed to create event");
+    return encodedRedirect("error", "/create", "Failed to create event");
   }
-
-  return encodedRedirect("success", "/events", "Event created successfully");
+  console.log(data);
+  return data;
 };
 
 export const signInAction = async (formData: FormData) => {

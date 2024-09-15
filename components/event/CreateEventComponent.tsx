@@ -14,12 +14,21 @@ const CreateEventComponent = () => {
     { label: "Ticket", isActive: step === 3, isCompleted: step > 3 },
   ];
 
+  const handleCompleted = (result: any) => {
+    console.log(result);
+    handleNext();
+  };
+
+  const handleNext = () => {
+    setStep(step + 1);
+  };
+
   return (
     <div className="w-full">
       <div className="flex justify-between items-center mb-4">
         <StepComponent steps={steps} title="Create Event" />
       </div>
-      {step === 1 && <EventForm />}
+      {step === 1 && <EventForm completed={handleCompleted} />}
       {step === 2 && <LocationComponent />}
       {step === 3 && <CreateTicket />}
     </div>
