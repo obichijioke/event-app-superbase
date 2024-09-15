@@ -2,6 +2,7 @@
 import { useEffect, useCallback, useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { cn } from "@/lib/utils";
 import { createEventAction } from "@/app/actions";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,10 +26,21 @@ import {
   X,
 } from "lucide-react";
 import { getCategories } from "@/app/actions";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
+//import ReactQuill from "react-quill";
+//import "react-quill/dist/quill.snow.css";
 import { useDropzone } from "react-dropzone";
 import Image from "next/image";
+import { EditorState } from "draft-js";
+import dynamic from "next/dynamic";
+import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
 
 const validationSchema = Yup.object().shape({
   eventName: Yup.string().required("Event name is required"),
@@ -40,10 +52,15 @@ const validationSchema = Yup.object().shape({
   bannerImages: Yup.array().min(1, "At least one image is required"),
 });
 
+const Editor = dynamic(
+  () => import("react-draft-wysiwyg").then((mod) => mod.Editor),
+  { ssr: false }
+);
+
 export default function EventForm() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const [editorState, setEditorState] = useState(EditorState.createEmpty());
   useEffect(() => {
     const fetchCategories = async () => {
       const fetchedCategories = await getCategories();
@@ -65,22 +82,53 @@ export default function EventForm() {
     },
     validationSchema,
     onSubmit: async (values) => {
+      console.log(values);
       try {
         const formData = new FormData();
         Object.entries(values).forEach(([key, value]) => {
           if (key === "bannerImages" && Array.isArray(value)) {
-            value.forEach((file: File) =>
-              formData.append("bannerImages", file)
+            value.forEach((file: File) => formData.append("images", file));
+          } else if (key === "eventDate") {
+            const dateValue = value as string;
+            formData.append(
+              key,
+              new Date(dateValue).toISOString().split("T")[0]
             );
           } else {
             formData.append(key, value.toString());
           }
         });
-        await createEventAction(formData);
-        // Handle successful submission
+
+        // Convert eventTime and eventDuration to startTime and endTime
+        const startTime = values.eventTime;
+        const endTime = calculateEndTime(
+          values.eventTime,
+          values.eventDuration
+        );
+        formData.append("startTime", startTime);
+        formData.append("endTime", endTime);
+
+        // Rename some fields to match the backend expectations
+        formData.set("name", formData.get("eventName") as string);
+        formData.delete("eventName");
+        formData.set("description", formData.get("eventDescription") as string);
+        formData.delete("eventDescription");
+        formData.set("categoryId", formData.get("category") as string);
+        formData.delete("category");
+
+        // const result = await createEventAction(formData);
+        // if (result.includes("success")) {
+        //   // Handle successful submission
+        //   console.log("Event created successfully");
+        //   // You might want to redirect the user or show a success message
+        // } else {
+        //   // Handle error
+        //   console.error("Error creating event:", result);
+        //   // You might want to show an error message to the user
+        // }
       } catch (error) {
-        // Handle error
         console.error("Error creating event:", error);
+        // Handle error, show message to user, etc.
       }
     },
   });
@@ -127,6 +175,9 @@ export default function EventForm() {
           <CardContent className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="eventName">Give your event a name.*</Label>
+              <p className="text-sm text-gray-500">
+                Choose a clear and catchy name that represents your event.
+              </p>
               <Input
                 id="eventName"
                 placeholder="Enter event name here"
@@ -143,6 +194,9 @@ export default function EventForm() {
               <Label htmlFor="category">
                 Choose a category for your event.*
               </Label>
+              <p className="text-sm text-gray-500">
+                Select the category that best fits your event type.
+              </p>
               <Select
                 value={formik.values.category}
                 onValueChange={(value) =>
@@ -170,14 +224,47 @@ export default function EventForm() {
 
             <div className="space-y-2">
               <Label>When is your event?*</Label>
+              <p className="text-sm text-gray-500">
+                Set the date, time, and duration of your event.
+              </p>
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="eventDate">Event Date*</Label>
-                  <Input
-                    id="eventDate"
-                    type="date"
-                    {...formik.getFieldProps("eventDate")}
-                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !formik.values.eventDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {formik.values.eventDate ? (
+                          format(new Date(formik.values.eventDate), "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <CalendarComponent
+                        mode="single"
+                        selected={
+                          formik.values.eventDate
+                            ? new Date(formik.values.eventDate)
+                            : undefined
+                        }
+                        onSelect={(date) =>
+                          formik.setFieldValue(
+                            "eventDate",
+                            date?.toISOString().split("T")[0]
+                          )
+                        }
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                   {formik.touched.eventDate && formik.errors.eventDate && (
                     <p className="text-red-500 text-sm">
                       {formik.errors.eventDate}
@@ -186,11 +273,27 @@ export default function EventForm() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="eventTime">Time</Label>
-                  <Input
-                    id="eventTime"
-                    type="time"
-                    {...formik.getFieldProps("eventTime")}
-                  />
+                  <Select
+                    value={formik.values.eventTime}
+                    onValueChange={(value) =>
+                      formik.setFieldValue("eventTime", value)
+                    }
+                  >
+                    <SelectTrigger id="eventTime">
+                      <SelectValue placeholder="Select time" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 24 * 4 }, (_, i) => {
+                        const hour = Math.floor(i / 4);
+                        const minute = (i % 4) * 15;
+                        return `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
+                      }).map((time) => (
+                        <SelectItem key={time} value={time}>
+                          {time}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   {formik.touched.eventTime && formik.errors.eventTime && (
                     <p className="text-red-500 text-sm">
                       {formik.errors.eventTime}
@@ -227,6 +330,10 @@ export default function EventForm() {
 
             <div className="space-y-2">
               <Label>Add images to your event banner.</Label>
+              <p className="text-sm text-gray-500">
+                Upload attractive images to showcase your event. You can add
+                multiple images.
+              </p>
               <div
                 {...getRootProps()}
                 className={`p-4 rounded-lg border-2 border-dashed ${
@@ -243,9 +350,8 @@ export default function EventForm() {
                         <Image
                           src={URL.createObjectURL(file)}
                           alt={`Event banner preview ${index + 1}`}
-                          layout="fill"
-                          objectFit="cover"
-                          className="rounded-lg"
+                          fill
+                          className="rounded-lg object-cover"
                         />
                         <button
                           type="button"
@@ -281,14 +387,25 @@ export default function EventForm() {
               <Label htmlFor="eventDescription">
                 Please describe your event.
               </Label>
-              <ReactQuill
-                id="eventDescription"
-                value={formik.values.eventDescription}
-                onChange={(value) =>
-                  formik.setFieldValue("eventDescription", value)
-                }
-                className="h-48"
-              />
+              <p className="text-sm text-gray-500">
+                Provide a detailed description of your event, including what
+                attendees can expect.
+              </p>
+              {typeof window !== "undefined" && (
+                <Editor
+                  editorState={editorState}
+                  toolbarClassName="toolbarClassName border border-2 border-gray-600"
+                  wrapperClassName="wrapperClassName border-2 border-dashed border-gray-300 rounded-lg"
+                  editorClassName="editorClassName h-48 px-4"
+                  onEditorStateChange={(newState) => {
+                    setEditorState(newState);
+                    formik.setFieldValue(
+                      "eventDescription",
+                      newState.getCurrentContent().getPlainText()
+                    );
+                  }}
+                />
+              )}
               {formik.touched.eventDescription &&
                 formik.errors.eventDescription && (
                   <p className="text-red-500 text-sm">
@@ -305,4 +422,13 @@ export default function EventForm() {
       </Card>
     </div>
   );
+}
+
+// Helper function to calculate end time
+function calculateEndTime(startTime: string, duration: string): string {
+  const [hours, minutes] = startTime.split(":").map(Number);
+  const durationInMinutes = duration === "30m" ? 30 : parseInt(duration) * 60;
+
+  const endDate = new Date(2000, 0, 1, hours, minutes + durationInMinutes);
+  return endDate.toTimeString().slice(0, 5);
 }
