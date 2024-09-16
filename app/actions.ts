@@ -47,7 +47,7 @@ export const getCategories = async () => {
 
 export const createEventAction = async (formData: FormData) => {
   const supabase = createClient();
-
+  const { data: user, error: userError } = await supabase.auth.getUser();
   // Extract form data
   const title = formData.get("name") as string;
   const description = formData.get("description") as string;
@@ -60,21 +60,23 @@ export const createEventAction = async (formData: FormData) => {
   // Upload images
   const imageUrls = [];
   for (const image of images) {
-    const fileName = `${Date.now()}_${image.name}`;
-    const { data, error } = await supabase.storage
-      .from("event-images")
-      .upload(fileName, image);
+    if (image.size > 0) {
+      const fileName = `${Date.now()}_${image.name}`;
+      const { data, error } = await supabase.storage
+        .from("event-images")
+        .upload(fileName, image);
 
-    if (error) {
-      console.error("Image upload error:", error.message);
-      return encodedRedirect("error", "/create", "Failed to upload image");
+      if (error) {
+        console.error("Image upload error:", error.message);
+        return encodedRedirect("error", "/create", "Failed to upload image");
+      }
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("event-images").getPublicUrl(fileName);
+
+      imageUrls.push(publicUrl);
     }
-
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from("event-images").getPublicUrl(fileName);
-
-    imageUrls.push(publicUrl);
   }
 
   // Insert event data with all fields
@@ -86,9 +88,10 @@ export const createEventAction = async (formData: FormData) => {
         description,
         event_date: eventDate,
         time: startTime,
-        category,
+        category: parseInt(category),
         image_urls: imageUrls,
         duration: duration,
+        organizer: user.user?.id,
       },
     ])
     .select();
