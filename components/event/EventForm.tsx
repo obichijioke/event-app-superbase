@@ -118,7 +118,6 @@ export default function EventForm({
         formData.set("description", formData.get("eventDescription") as string);
         formData.delete("eventDescription");
         formData.set("category", formData.get("category") as string);
-        formData.delete("category");
 
         const result = await createEventAction(formData);
         if (result) {

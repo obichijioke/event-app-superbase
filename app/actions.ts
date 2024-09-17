@@ -54,9 +54,8 @@ export const createEventAction = async (formData: FormData) => {
   const eventDate = formData.get("eventDate") as string;
   const startTime = formData.get("eventTime") as string;
   const category = formData.get("category") as string;
-  const images = formData.getAll("bannerImages") as File[];
+  const images = formData.getAll("images") as File[];
   const duration = formData.get("eventDuration") as string;
-
   // Upload images
   const imageUrls = [];
   for (const image of images) {
