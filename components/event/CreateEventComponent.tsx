@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { CheckIcon } from "lucide-react";
 
 const CreateEventComponent = () => {
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(2);
   const steps: Step[] = [
     { label: "Event Details", isActive: step === 1, isCompleted: step > 1 },
     { label: "Location", isActive: step === 2, isCompleted: step > 2 },
