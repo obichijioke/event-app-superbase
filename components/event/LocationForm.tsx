@@ -38,7 +38,7 @@ export default function LocationComponent({
   completed,
 }: {
   eventId?: number;
-  completed: (result: any) => void;
+  completed: (result?: any) => void;
 }) {
   const formik = useFormik({
     initialValues: {
@@ -76,6 +76,7 @@ export default function LocationComponent({
       formData.append("event_id", eventId?.toString() || "");
 
       await createLocationAction(formData);
+      completed();
     },
   });
 

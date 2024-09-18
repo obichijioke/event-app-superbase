@@ -7,7 +7,7 @@ import { CheckIcon } from "lucide-react";
 import { EventType } from "@/types/eventTypes";
 
 const CreateEventComponent = () => {
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(3);
   const [event, setEvent] = useState<EventType[] | null>(null);
   const steps: Step[] = [
     { label: "Event Details", isActive: step === 1, isCompleted: step > 1 },
@@ -15,7 +15,7 @@ const CreateEventComponent = () => {
     { label: "Ticket", isActive: step === 3, isCompleted: step > 3 },
   ];
 
-  const handleCompleted = (result: any) => {
+  const handleCompleted = (result?: any) => {
     console.log(result);
     handleNext();
   };
