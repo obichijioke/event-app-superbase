@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import Script from "next/script";
 import { Input } from "@/components/ui/input";
+import { Loader } from "@googlemaps/js-api-loader";
 
 interface AddressComponentType {
   long_name: string;
@@ -45,11 +45,27 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    const loader = new Loader({
+      apiKey,
+      version: "weekly",
+      libraries: ["places"],
+    });
+
+    loader
+      .load()
+      .then(() => {
+        setLibraryLoaded(true);
+      })
+      .catch((e) => {
+        console.error("Error loading Google Maps API:", e);
+      });
+  }, [apiKey]);
+
+  useEffect(() => {
     if (libraryLoaded && inputRef.current) {
       autoCompleteRef.current = new google.maps.places.Autocomplete(
         inputRef.current,
         {
-          types: ["address"],
           fields: ["address_components", "formatted_address", "geometry"],
         }
       );
@@ -94,18 +110,12 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   };
 
   return (
-    <>
-      <Script
-        src={`https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`}
-        onLoad={() => setLibraryLoaded(true)}
-      />
-      <Input
-        ref={inputRef}
-        type="text"
-        placeholder="Enter your address"
-        className="w-full p-2 border border-gray-300 rounded"
-      />
-    </>
+    <Input
+      ref={inputRef}
+      type="text"
+      placeholder="Enter your address"
+      className="w-full p-2 border border-gray-300 rounded"
+    />
   );
 };
 

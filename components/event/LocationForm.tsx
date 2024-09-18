@@ -12,8 +12,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { ZoomIn, ZoomOut, Maximize } from "lucide-react";
 import AutoAddressCompleteComponent from "./AutoAddressCompleteComponent";
+import dynamic from "next/dynamic";
+
+// Dynamically import the map component with ssr disabled
+const MapWithNoSSR = dynamic(() => import("./MapComponent"), {
+  ssr: false,
+});
 
 interface AddressObject {
   street_number: string;
@@ -41,11 +46,11 @@ export default function LocationComponent() {
       longitude: "",
     },
     validationSchema: Yup.object({
-      venue: Yup.string().required("Venue is required"),
+      venue: Yup.string(),
       addressLine1: Yup.string().required("Address line 1 is required"),
       country: Yup.string().required("Country is required"),
       state: Yup.string().required("State is required"),
-      city: Yup.string().required("City is required"),
+      city: Yup.string(),
       zipCode: Yup.string().required("Zip/Post Code is required"),
       latitude: Yup.number(),
       longitude: Yup.number(),
@@ -80,47 +85,37 @@ export default function LocationComponent() {
       </CardHeader>
       <CardContent className="space-y-6">
         <form onSubmit={formik.handleSubmit} noValidate>
-          <AutoAddressCompleteComponent
-            apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}
-            onAddressSelect={(address) => {
-              handleAddressSelect(address);
-            }}
-          />
-
-          <div className="relative h-64 bg-gray-200 rounded-lg overflow-hidden">
-            <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-lg">
-              Map will be displayed here
-            </div>
-            <div className="absolute top-2 left-2 bg-white rounded shadow p-1">
-              <Button variant="ghost" size="icon">
-                <ZoomIn className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon">
-                <ZoomOut className="h-4 w-4" />
-              </Button>
-            </div>
-            <Button
-              variant="secondary"
-              size="sm"
-              className="absolute top-2 right-2"
-            >
-              <Maximize className="h-4 w-4 mr-2" />
-              View larger map
-            </Button>
+          <div className="relative h-64 rounded-lg overflow-hidden">
+            <MapWithNoSSR
+              setPosition={(position) => {
+                formik.setFieldValue("latitude", position.lat);
+                formik.setFieldValue("longitude", position.lng);
+              }}
+              position={
+                formik.values.latitude && formik.values.longitude
+                  ? {
+                      lat: parseFloat(formik.values.latitude),
+                      lng: parseFloat(formik.values.longitude),
+                    }
+                  : { lat: 0, lng: 0 }
+              }
+            />
           </div>
 
           <div className="space-y-4">
-            <div>
-              <Label htmlFor="venue">Venue*</Label>
-              <Input id="venue" {...formik.getFieldProps("venue")} />
-              {formik.touched.venue && formik.errors.venue && (
-                <div className="text-red-500">{formik.errors.venue}</div>
-              )}
+            <div className="mt-4">
+              <Label htmlFor="venue">Venue</Label>
+              <AutoAddressCompleteComponent
+                apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}
+                onAddressSelect={(address) => {
+                  handleAddressSelect(address);
+                }}
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="addressLine1">Address line 1*</Label>
+                <Label htmlFor="addressLine1">Address line</Label>
                 <Input
                   id="addressLine1"
                   {...formik.getFieldProps("addressLine1")}
@@ -132,7 +127,7 @@ export default function LocationComponent() {
                 )}
               </div>
               <div>
-                <Label htmlFor="addressLine2">Address line 2*</Label>
+                <Label htmlFor="addressLine2">Address line 2</Label>
                 <Input
                   id="addressLine2"
                   {...formik.getFieldProps("addressLine2")}
@@ -147,7 +142,7 @@ export default function LocationComponent() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="country">Country*</Label>
+                <Label htmlFor="country">Country</Label>
                 <Select
                   value={formik.values.country}
                   onValueChange={(value) =>
@@ -168,7 +163,7 @@ export default function LocationComponent() {
                 )}
               </div>
               <div>
-                <Label htmlFor="state">State*</Label>
+                <Label htmlFor="state">State</Label>
                 <Input id="state" {...formik.getFieldProps("state")} />
                 {formik.touched.state && formik.errors.state && (
                   <div className="text-red-500">{formik.errors.state}</div>
@@ -178,14 +173,14 @@ export default function LocationComponent() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="city">City/Suburb*</Label>
+                <Label htmlFor="city">City/Suburb</Label>
                 <Input id="city" {...formik.getFieldProps("city")} />
                 {formik.touched.city && formik.errors.city && (
                   <div className="text-red-500">{formik.errors.city}</div>
                 )}
               </div>
               <div>
-                <Label htmlFor="zipCode">Zip/Post Code*</Label>
+                <Label htmlFor="zipCode">Zip/Post Code</Label>
                 <Input id="zipCode" {...formik.getFieldProps("zipCode")} />
                 {formik.touched.zipCode && formik.errors.zipCode && (
                   <div className="text-red-500">{formik.errors.zipCode}</div>
@@ -194,7 +189,7 @@ export default function LocationComponent() {
             </div>
           </div>
 
-          <Button type="submit" disabled={formik.isSubmitting}>
+          <Button className="mt-3" type="submit" disabled={formik.isSubmitting}>
             {formik.isSubmitting ? "Submitting..." : "Submit"}
           </Button>
         </form>
