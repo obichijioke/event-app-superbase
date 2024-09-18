@@ -1,12 +1,6 @@
-import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  Popup,
-  useMapEvents,
-} from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { useState } from "react";
+import { useEffect } from "react";
 import { LatLng } from "leaflet";
 import "leaflet-defaulticon-compatibility";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
@@ -19,21 +13,19 @@ export default function MapComponent({
   position: { lat: number; lng: number };
 }) {
   function LocationMarker() {
-    const map = useMapEvents({
-      click() {
-        map.locate();
-      },
-      locationfound(e) {
-        setPosition(e.latlng);
-        map.flyTo(e.latlng, map.getZoom());
-      },
-    });
+    const map = useMap();
 
-    return position === null ? null : (
+    useEffect(() => {
+      if (position) {
+        map.flyTo([position.lat, position.lng], map.getZoom());
+      }
+    }, [position, map]);
+
+    return position ? (
       <Marker position={position}>
         <Popup>You are here</Popup>
       </Marker>
-    );
+    ) : null;
   }
   return (
     <MapContainer
