@@ -45,6 +45,58 @@ export const getCategories = async () => {
   return data;
 };
 
+export const createLocationAction = async (formData: FormData) => {
+  const supabase = createClient();
+  const eventId = formData.get("event_id") as string;
+  const { data, error } = await supabase
+    .from("location")
+    .insert([
+      {
+        venue: formData.get("venue") as string,
+        address_line_1: formData.get("address_line_1") as string,
+        address_line_2: formData.get("address_line_2") as string,
+        city: formData.get("city") as string,
+        state: formData.get("state") as string,
+        //country: formData.get("country") as string,
+        zip_postal_code: formData.get("zip_postal_code") as string,
+        latitude: parseFloat(formData.get("latitude") as string),
+        longitude: parseFloat(formData.get("longitude") as string),
+      },
+    ])
+    .select();
+
+  if (data) {
+    console.log(data);
+    const formData = new FormData();
+    formData.append("venue", data[0].id);
+    updateEventAction(formData, eventId as string);
+  }
+
+  if (error) {
+    console.error(error);
+    return { error: error.message };
+  }
+  return { data };
+};
+
+export const updateEventAction = async (formData: FormData, rowId: string) => {
+  const supabase = createClient();
+  let updateData: { [key: string]: any } = {};
+
+  formData.forEach((value, key) => {
+    updateData[key] = value;
+  });
+  const { data, error } = await supabase
+    .from("event")
+    .update([updateData])
+    .eq("id", rowId);
+  if (error) {
+    console.error(error.code + " " + error.message);
+    return encodedRedirect("error", "/create", "Failed to update event");
+  }
+  return data;
+};
+
 export const createEventAction = async (formData: FormData) => {
   const supabase = createClient();
   const { data: user, error: userError } = await supabase.auth.getUser();

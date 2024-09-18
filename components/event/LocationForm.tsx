@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import AutoAddressCompleteComponent from "./AutoAddressCompleteComponent";
 import dynamic from "next/dynamic";
+import { createLocationAction } from "@/app/actions";
 
 // Dynamically import the map component with ssr disabled
 const MapWithNoSSR = dynamic(() => import("./MapComponent"), {
@@ -32,7 +33,13 @@ interface AddressObject {
   longitude: number;
 }
 
-export default function LocationComponent() {
+export default function LocationComponent({
+  eventId,
+  completed,
+}: {
+  eventId?: number;
+  completed: (result: any) => void;
+}) {
   const formik = useFormik({
     initialValues: {
       venue: "",
@@ -55,9 +62,20 @@ export default function LocationComponent() {
       latitude: Yup.number(),
       longitude: Yup.number(),
     }),
-    onSubmit: (values) => {
-      console.log("Form submitted with values:", values);
-      // Add your form submission logic here
+    onSubmit: async (values) => {
+      const formData = new FormData();
+      formData.append("venue", values.venue);
+      formData.append("address_line_1", values.addressLine1);
+      formData.append("address_line_2", values.addressLine2);
+      formData.append("city", values.city);
+      formData.append("state", values.state);
+      formData.append("country", values.country);
+      formData.append("zip_postal_code", values.zipCode);
+      formData.append("latitude", values.latitude.toString());
+      formData.append("longitude", values.longitude.toString());
+      formData.append("event_id", eventId?.toString() || "");
+
+      await createLocationAction(formData);
     },
   });
 

@@ -3,11 +3,12 @@ import React, { useState, useEffect } from "react";
 import EventForm from "./EventForm";
 import LocationComponent from "./LocationForm";
 import CreateTicket from "./CreateTicket";
-import { Button } from "@/components/ui/button";
 import { CheckIcon } from "lucide-react";
+import { EventType } from "@/types/eventTypes";
 
 const CreateEventComponent = () => {
-  const [step, setStep] = useState(2);
+  const [step, setStep] = useState(1);
+  const [event, setEvent] = useState<EventType[] | null>(null);
   const steps: Step[] = [
     { label: "Event Details", isActive: step === 1, isCompleted: step > 1 },
     { label: "Location", isActive: step === 2, isCompleted: step > 2 },
@@ -28,8 +29,20 @@ const CreateEventComponent = () => {
       <div className="flex justify-between items-center mb-4">
         <StepComponent steps={steps} title="Create Event" />
       </div>
-      {step === 1 && <EventForm completed={handleCompleted} />}
-      {step === 2 && <LocationComponent />}
+      {step === 1 && (
+        <EventForm
+          completed={(result) => {
+            setEvent(result);
+            handleNext();
+          }}
+        />
+      )}
+      {step === 2 && (
+        <LocationComponent
+          eventId={event?.[0]?.id}
+          completed={handleCompleted}
+        />
+      )}
       {step === 3 && <CreateTicket />}
     </div>
   );
