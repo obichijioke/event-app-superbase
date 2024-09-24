@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -9,6 +9,8 @@ import {
   MoreVertical,
   ChevronDown,
 } from "lucide-react";
+import TicketTypeForm from "./TicketForm";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface TicketType {
   name: string;
@@ -42,6 +44,8 @@ const ticketTypes: TicketType[] = [
 ];
 
 export default function CreateTicket() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [eventId, setEventId] = useState("");
   return (
     <Card className="w-full max-w-3xl mx-auto">
       <CardHeader>
@@ -61,6 +65,7 @@ export default function CreateTicket() {
           <Button
             variant="outline"
             className="bg-green-500 text-white hover:bg-green-600"
+            onClick={() => setIsOpen(true)}
           >
             Add Tickets
             <ChevronDown className="ml-2 h-4 w-4" />
@@ -136,6 +141,11 @@ export default function CreateTicket() {
           </Button>
         </div>
       </CardContent>
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="max-w-2xl mx-auto">
+          <TicketTypeForm eventId={eventId} />
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

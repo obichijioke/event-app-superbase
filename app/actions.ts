@@ -248,3 +248,48 @@ export const signOutAction = async () => {
   await supabase.auth.signOut();
   return redirect("/sign-in");
 };
+
+export const createTicketAction = async (formData: FormData) => {
+  const supabase = createClient();
+
+  const eventId = formData.get("event_id") as string;
+  const ticketName = formData.get("ticketName") as string;
+  const totalTickets = formData.get("totalTickets") as string;
+  const maxPerCustomer = formData.get("maxPerCustomer") as string;
+  const ticketOrder = formData.get("ticketOrder") as string;
+  const ticketDescription = formData.get("ticketDescription") as string;
+  const price = parseFloat(formData.get("price") as string);
+  const variationName = formData.get("variationName") as string;
+  const unlimitedTotal = formData.get("unlimitedTotal") === "true";
+  const unlimitedPerCustomer = formData.get("unlimitedPerCustomer") === "true";
+  const earlyBirdDiscount = formData.get("earlyBirdDiscount") === "true";
+
+  // Insert ticket into the "tickets" table
+  const { data, error } = await supabase
+    .from("tickets")
+    .insert([
+      {
+        event_id: eventId,
+        ticket_name: ticketName,
+        total_tickets: unlimitedTotal ? null : parseInt(totalTickets, 10),
+        max_per_customer: unlimitedPerCustomer
+          ? null
+          : parseInt(maxPerCustomer, 10),
+        ticket_order: parseInt(ticketOrder, 10),
+        ticket_description: ticketDescription,
+        price: price,
+        variation_name: variationName,
+        unlimited_total: unlimitedTotal,
+        unlimited_per_customer: unlimitedPerCustomer,
+        early_bird_discount: earlyBirdDiscount,
+      },
+    ])
+    .select();
+
+  if (error) {
+    console.error("Error creating ticket:", error.message);
+    return { error: error.message };
+  }
+
+  return { data };
+};
