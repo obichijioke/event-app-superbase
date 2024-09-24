@@ -42,7 +42,7 @@ export default function TicketForm({ eventId }: TicketFormProps) {
       ticketOrder: "1",
       description: "",
       price: "",
-      discount: "",
+      discount_percentage: "",
     },
     onSubmit: async (values, { resetForm }) => {
       const formData = new FormData();
@@ -57,7 +57,7 @@ export default function TicketForm({ eventId }: TicketFormProps) {
       formData.append("unlimitedPerCustomer", unlimitedPerCustomer.toString());
       formData.append("earlyBirdDiscount", earlyBirdDiscount.toString());
       if (earlyBirdDiscount) {
-        formData.append("discount", values.discount);
+        formData.append("discount_percentage", values.discount_percentage);
       }
 
       const response = await createTicketAction(formData);
@@ -201,19 +201,21 @@ export default function TicketForm({ eventId }: TicketFormProps) {
                 checked={earlyBirdDiscount}
                 onCheckedChange={setEarlyBirdDiscount}
               />
-              <Label htmlFor="discount">
+              <Label htmlFor="discount_percentage">
                 I want to offer early bird discount
               </Label>
             </div>
             {earlyBirdDiscount && (
               <div className="mt-2">
-                <Label htmlFor="discount">Early Bird Discount Percentage</Label>
+                <Label htmlFor="discount_percentage">
+                  Early Bird Discount Percentage
+                </Label>
                 <Input
                   type="number"
-                  id="discount"
-                  name="discount"
+                  id="discount_percentage"
+                  name="discount_percentage"
                   placeholder="Enter discount percentage"
-                  value={formik.values.discount}
+                  value={formik.values.discount_percentage}
                   onChange={formik.handleChange}
                   min="0"
                   max="100"
