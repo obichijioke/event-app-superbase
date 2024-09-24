@@ -263,6 +263,9 @@ export const createTicketAction = async (formData: FormData) => {
   const unlimitedTotal = formData.get("unlimitedTotal") === "true";
   const unlimitedPerCustomer = formData.get("unlimitedPerCustomer") === "true";
   const earlyBirdDiscount = formData.get("earlyBirdDiscount") === "true";
+  const earlyBirdDiscountPercentage = earlyBirdDiscount
+    ? parseFloat(formData.get("earlyBirdDiscountPercentage") as string)
+    : null;
 
   // Insert ticket into the "tickets" table
   const { data, error } = await supabase
@@ -282,6 +285,7 @@ export const createTicketAction = async (formData: FormData) => {
         unlimited_total: unlimitedTotal,
         unlimited_per_customer: unlimitedPerCustomer,
         early_bird_discount: earlyBirdDiscount,
+        early_bird_discount_percentage: earlyBirdDiscountPercentage,
       },
     ])
     .select();

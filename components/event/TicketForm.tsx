@@ -21,7 +21,8 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, X } from "lucide-react";
-
+import useErrorHandler from "@/hooks/useErrorHandler";
+import useSuccessHandler from "@/hooks/useSuccessHandler";
 interface TicketFormProps {
   eventId: string;
 }
@@ -30,39 +31,41 @@ export default function TicketForm({ eventId }: TicketFormProps) {
   const [unlimitedTotal, setUnlimitedTotal] = useState(true);
   const [unlimitedPerCustomer, setUnlimitedPerCustomer] = useState(false);
   const [earlyBirdDiscount, setEarlyBirdDiscount] = useState(false);
+  const handleError = useErrorHandler();
+  const handleSuccess = useSuccessHandler();
 
   const formik = useFormik({
     initialValues: {
-      ticketName: "",
-      totalTickets: "",
-      maxPerCustomer: "",
+      name: "",
+      quantity: "",
+      tickets_per_customer: "",
       ticketOrder: "1",
-      ticketDescription: "",
+      description: "",
       price: "",
-      variationName: "",
+      discount: "",
     },
     onSubmit: async (values, { resetForm }) => {
       const formData = new FormData();
       formData.append("event_id", eventId);
-      formData.append("ticketName", values.ticketName);
-      formData.append("totalTickets", values.totalTickets);
-      formData.append("maxPerCustomer", values.maxPerCustomer);
+      formData.append("name", values.name);
+      formData.append("quantity", values.quantity);
+      formData.append("tickets_per_customer", values.tickets_per_customer);
       formData.append("ticketOrder", values.ticketOrder);
-      formData.append("ticketDescription", values.ticketDescription);
+      formData.append("description", values.description);
       formData.append("price", values.price);
-      formData.append("variationName", values.variationName);
       formData.append("unlimitedTotal", unlimitedTotal.toString());
       formData.append("unlimitedPerCustomer", unlimitedPerCustomer.toString());
       formData.append("earlyBirdDiscount", earlyBirdDiscount.toString());
+      if (earlyBirdDiscount) {
+        formData.append("discount", values.discount);
+      }
 
       const response = await createTicketAction(formData);
 
       if (response.error) {
-        // Handle error (e.g., display a notification)
-        console.error(response.error);
+        handleError(response.error);
       } else {
-        // Handle success (e.g., display a success message and reset form)
-        console.log("Ticket created successfully:", response.data);
+        handleSuccess("Ticket created successfully");
         resetForm();
         setUnlimitedTotal(true);
         setUnlimitedPerCustomer(false);
@@ -79,13 +82,13 @@ export default function TicketForm({ eventId }: TicketFormProps) {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="ticketName">Ticket Name*</Label>
+            <Label htmlFor="name">Ticket Name*</Label>
             <Input
-              id="ticketName"
-              name="ticketName"
+              id="name"
+              name="name"
               placeholder="Event Ticket Name"
               onChange={formik.handleChange}
-              value={formik.values.ticketName}
+              value={formik.values.name}
               required
             />
           </div>
@@ -94,7 +97,7 @@ export default function TicketForm({ eventId }: TicketFormProps) {
             <h3 className="text-lg font-semibold">Ticket Restrictions</h3>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="totalTickets">
+                <Label htmlFor="quantity">
                   Total number of tickets available
                 </Label>
                 <div className="flex items-center space-x-2">
@@ -109,10 +112,10 @@ export default function TicketForm({ eventId }: TicketFormProps) {
               {!unlimitedTotal && (
                 <Input
                   type="number"
-                  id="totalTickets"
-                  name="totalTickets"
+                  id="quantity"
+                  name="quantity"
                   placeholder="Enter Total Tickets"
-                  value={formik.values.totalTickets}
+                  value={formik.values.quantity}
                   onChange={formik.handleChange}
                   className="mt-2"
                   required={!unlimitedTotal}
@@ -120,7 +123,7 @@ export default function TicketForm({ eventId }: TicketFormProps) {
               )}
             </div>
             <div className="flex items-center justify-between">
-              <Label htmlFor="maxPerCustomer">
+              <Label htmlFor="tickets_per_customer">
                 Maximum number of tickets for each customer
               </Label>
               <div className="flex items-center space-x-2">
@@ -135,10 +138,10 @@ export default function TicketForm({ eventId }: TicketFormProps) {
             {!unlimitedPerCustomer && (
               <Input
                 type="number"
-                id="maxPerCustomer"
-                name="maxPerCustomer"
+                id="tickets_per_customer"
+                name="tickets_per_customer"
                 placeholder="Enter Maximum Tickets Per Customer"
-                value={formik.values.maxPerCustomer}
+                value={formik.values.tickets_per_customer}
                 onChange={formik.handleChange}
                 className="mt-2"
                 required={!unlimitedPerCustomer}
@@ -168,57 +171,29 @@ export default function TicketForm({ eventId }: TicketFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="ticketDescription">Ticket Description*</Label>
+            <Label htmlFor="description">Ticket Description*</Label>
             <Textarea
-              id="ticketDescription"
-              name="ticketDescription"
+              id="description"
+              name="description"
               placeholder="Description will go here"
               onChange={formik.handleChange}
-              value={formik.values.ticketDescription}
+              value={formik.values.description}
               required
             />
           </div>
 
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Variations (1)</h3>
-              <Button variant="outline" size="sm">
-                <PlusCircle className="h-4 w-4 mr-2" />
-                Add
-              </Button>
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="price">Price *</Label>
-                <Input
-                  id="price"
-                  name="price"
-                  placeholder="Price"
-                  type="number"
-                  onChange={formik.handleChange}
-                  value={formik.values.price}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="variationName">Variation Name *</Label>
-                <Input
-                  id="variationName"
-                  name="variationName"
-                  placeholder="Variation Name"
-                  onChange={formik.handleChange}
-                  value={formik.values.variationName}
-                  required
-                />
-              </div>
-              <div className="flex items-end">
-                <Button variant="destructive" size="icon">
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+          <div>
+            <Label htmlFor="price">Price *</Label>
+            <Input
+              id="price"
+              name="price"
+              placeholder="Price"
+              type="number"
+              onChange={formik.handleChange}
+              value={formik.values.price}
+              required
+            />
           </div>
-
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
               <Switch
@@ -226,10 +201,26 @@ export default function TicketForm({ eventId }: TicketFormProps) {
                 checked={earlyBirdDiscount}
                 onCheckedChange={setEarlyBirdDiscount}
               />
-              <Label htmlFor="earlyBirdDiscount">
+              <Label htmlFor="discount">
                 I want to offer early bird discount
               </Label>
             </div>
+            {earlyBirdDiscount && (
+              <div className="mt-2">
+                <Label htmlFor="discount">Early Bird Discount Percentage</Label>
+                <Input
+                  type="number"
+                  id="discount"
+                  name="discount"
+                  placeholder="Enter discount percentage"
+                  value={formik.values.discount}
+                  onChange={formik.handleChange}
+                  min="0"
+                  max="100"
+                  required
+                />
+              </div>
+            )}
             <p className="text-sm text-gray-500">
               Enabling this discount lets your attendees get all the regular
               tickets features at a discounted price.
